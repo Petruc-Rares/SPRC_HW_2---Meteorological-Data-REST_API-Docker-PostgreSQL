@@ -75,9 +75,6 @@ def add_country():
     if {"nume", "lat", "lon"} != body.keys():
         return Response(status=400)
 
-    # check if there already exists a country with that name
-    if Tari.query.filter(Tari.nume_tara == body['nume']).first():
-        return Response(status=409)
 
         # check if data types are correct
     if not ((isinstance(body['lon'], float)) and
@@ -85,10 +82,14 @@ def add_country():
             (isinstance(body['lat'], float))):
         return Response(status=400)
 
-    db.session.add(Tari(nume_tara=body['nume'], longitudine=body['lon'], latitudine=body['lat']))
-    db.session.commit()
-
-    #print(Tari.query.filter_by(nume_tara=body['nume']).first().id, file=sys.stderr)
+    # add the new country
+    # check uk, pk
+    try:
+        db.session.add(Tari(nume_tara=body['nume'], longitudine=body['lon'], latitudine=body['lat']))
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return Response(status=409)
 
     test_data = {'id': Tari.query.filter_by(nume_tara=body['nume']).first().id}
     return jsonify(test_data), 201
@@ -104,8 +105,6 @@ def list_countries():
     # reformat them in the desired format
     columns_names = ['id', 'nume', 'lat', 'lon']
     all_countries_reformated = [row2dict(columns_names, country) for country in all_countries]
-
-    print(all_countries_reformated, file=sys.stderr)
 
     return jsonify(all_countries_reformated), 200
 
@@ -127,30 +126,25 @@ def modify_country(id_country):
             (isinstance(body['lon'], float)) and
             (isinstance(body['nume'], str)) and
             (isinstance(body['lat'], float))):
+        return Response(status=400) 
+
+    try:
+        db.session.query(Tari).\
+                    filter(Tari.id == id_country).\
+                    update({'id':body['id'],
+                            'nume_tara':body['nume'],
+                            'longitudine': body['lon'],
+                            'latitudine': body['lat']})
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
         return Response(status=400)
-
-    # check if the new name of country inserted does not conflict with another
-    if db.session.query(Tari).filter(
-        and_(Tari.id != id_country,
-             Tari.nume_tara==body['nume'])).first():
-        return Response(status=404)    
-
-    db.session.query(Tari).\
-                filter(Tari.id == id_country).\
-                update({'id':body['id'],
-                        'nume_tara':body['nume'],
-                        'longitudine': body['lon'],
-                        'latitudine': body['lat']})
-
-    db.session.commit()
 
     return Response(status=200)
 
 
 @app.route("/api/countries/<int:id_country>", methods=["DELETE"])
 def delete_country(id_country):
-    body = request.get_json()
-
     # check if the country id does not exist
     # in this case return error
     if not Tari.query.filter(Tari.id == id_country).first():
@@ -172,12 +166,6 @@ def add_city():
     if {"idTara", "nume", "lat", "lon"} != body.keys():
         return Response(status=400)
 
-    # check if there already exists a city with that uk
-    if db.session.query(Orase).filter(
-        and_(Orase.id_tara == body['idTara'],
-             Orase.nume_oras == body['nume'])).first():
-        return Response(status=409)
-
     # check if data types are correct
     if not ((isinstance(body['lat'], float)) and
             (isinstance(body['lon'], float)) and
@@ -185,8 +173,14 @@ def add_city():
             (isinstance(body['idTara'], int))):
         return Response(status=400)
 
-    db.session.add(Orase(id_tara = body['idTara'],nume_oras=body['nume'], longitudine=body['lon'], latitudine=body['lat']))
-    db.session.commit()
+    # add the new city
+    # check uk, pk
+    try:
+        db.session.add(Orase(id_tara = body['idTara'],nume_oras=body['nume'], longitudine=body['lon'], latitudine=body['lat']))
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return Response(status=400)
 
     test_data = {'id': db.session.query(Orase).filter(and_(Orase.nume_oras==body['nume'], Orase.id_tara == body['idTara'])).first().id}
     return jsonify(test_data), 201
@@ -199,8 +193,6 @@ def list_cities():
     columns_names = ['id', 'idTara', 'nume', 'lat', 'lon']
     all_cities_reformated = [row2dict(columns_names, city) for city in all_cities]
 
-    print(all_cities_reformated, file=sys.stderr)
-
     return jsonify(all_cities_reformated), 200
 
 @app.route('/api/cities/country/<int:id_country>', methods=['GET'])
@@ -210,8 +202,6 @@ def get_city_of_country(id_country):
     # reformat them in the desired format
     columns_names = ['id', 'idTara', 'nume', 'lat', 'lon']
     all_cities_reformated = [row2dict(columns_names, city) for city in all_cities]
-
-    print(all_cities_reformated, file=sys.stderr)
 
     return jsonify(all_cities_reformated), 200
 
@@ -223,7 +213,6 @@ def modify_city(id_city):
     if {"id", "idTara", "nume", "lat", "lon"} != body.keys():
         return Response(status=400)
 
-
     # check if data types are correct
     if not ((isinstance(body['lat'], float)) and
             (isinstance(body['lon'], float)) and
@@ -231,6 +220,10 @@ def modify_city(id_city):
             (isinstance(body['idTara'], int)) and
             (isinstance(body['id'], int))):
         return Response(status=400)    
+
+    if not Orase.query.filter(Orase.id == id_city).first():
+        return Response(status=404)
+
 
     # try to modify existing id
     # check no pk or uk violation
