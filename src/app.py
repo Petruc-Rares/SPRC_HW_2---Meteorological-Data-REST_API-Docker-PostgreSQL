@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 import datetime
 from sqlalchemy.sql import text, select
+from sqlalchemy import and_
 import sys
 
 app = Flask(__name__)
@@ -100,6 +101,38 @@ def list_countries():
     print(all_countries_reformated, file=sys.stderr)
 
     return jsonify(all_countries_reformated), 200
+
+@app.route("/api/countries/<int:id_country>", methods=["PUT"])
+def modify_country(id_country):
+    body = request.get_json()
+
+    # check if we have all required columns
+    if {"id", "nume", "lat", "lon"} != body.keys():
+        return Response(status=400)
+
+    # check if the country id does not exist
+    # in this case return error
+    if not Tari.query.filter(Tari.id == id_country).first():
+        return Response(status=404)
+
+    # check if the new name of country inserted does not conflict with another
+    if db.session.query(Tari).filter(
+        and_(Tari.id != id_country,
+             Tari.nume_tara==body['nume'])).first():
+        return Response(status=404)    
+
+    db.session.query(Tari).\
+                filter(Tari.id == id_country).\
+                update({'id':body['id'],
+                        'nume_tara':body['nume'],
+                        'longitudine': body['lon'],
+                        'latitudine': body['lat']})
+
+    db.session.commit()
+
+    return Response(status=200)
+
+
 
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
