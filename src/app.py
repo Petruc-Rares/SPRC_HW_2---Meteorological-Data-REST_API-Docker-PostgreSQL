@@ -85,6 +85,22 @@ def add_country():
     test_data = {'id': Tari.query.filter_by(nume_tara=body['nume']).first().id}
     return jsonify(test_data), 201
 
+# taken from https://stackoverflow.com/questions/1958219/how-to-convert-sqlalchemy-row-object-to-a-python-dict
+# Anurag Uniyal's answer
+row2dict = lambda col_names, r: {column_name: getattr(r, c.name) for (column_name, c) in zip(col_names, r.__table__.columns)}
+
+@app.route('/api/countries', methods=['GET'])
+def list_countries():
+    all_countries = Tari.query.all()
+
+    # reformat them in the desired format
+    columns_names = ['id', 'nume', 'lat', 'lon']
+    all_countries_reformated = [row2dict(columns_names, country) for country in all_countries]
+
+    print(all_countries_reformated, file=sys.stderr)
+
+    return jsonify(all_countries_reformated), 200
+
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
