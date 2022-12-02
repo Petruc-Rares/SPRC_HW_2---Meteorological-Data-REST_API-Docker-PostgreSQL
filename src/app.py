@@ -4,6 +4,7 @@ import os
 import datetime
 from sqlalchemy.sql import text, select
 from sqlalchemy import and_
+from sqlalchemy.exc import IntegrityError
 import sys
 
 app = Flask(__name__)
@@ -214,6 +215,39 @@ def get_city_of_country(id_country):
 
     return jsonify(all_cities_reformated), 200
 
+@app.route('/api/cities/<int:id_city>', methods=['PUT'])
+def modify_city(id_city):
+    body = request.get_json()
+
+    # check if we have all required columns
+    if {"id", "idTara", "nume", "lat", "lon"} != body.keys():
+        return Response(status=400)
+
+
+    # check if data types are correct
+    if not ((isinstance(body['lat'], float)) and
+            (isinstance(body['lon'], float)) and
+            (isinstance(body['nume'], str)) and
+            (isinstance(body['idTara'], int)) and
+            (isinstance(body['id'], int))):
+        return Response(status=400)    
+
+    # try to modify existing id
+    # check no pk or uk violation
+    try:
+        db.session.query(Orase).\
+            filter(Orase.id == id_city).\
+            update({'id':body['id'],
+                    'id_tara': body['idTara'],
+                    'nume_oras':body['nume'],
+                    'longitudine': body['lon'],
+                    'latitudine': body['lat']})
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return Response(status=400)
+
+    return Response(status=200)
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
