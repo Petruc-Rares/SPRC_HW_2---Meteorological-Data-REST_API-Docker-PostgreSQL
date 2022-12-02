@@ -1,0 +1,22 @@
+docker inspect db 
+(ca sa iau adresa ip a containerului db pentru conectarea cu pagent)
+
+in container db:
+INTRA IN CONTAINER DE DB:
+docker exec -ti db psql -U postgres -d postgres
+
+sa vezi ce tabele ai:
+\dt
+
+descriere table_name:
+\d table_name
+
+
+STERGE CONTAINERE:
+docker container rm $(docker ps -aq)
+
+STERGE IMAGINI:
+docker image rm $(docker images -a -q)
+
+
+
