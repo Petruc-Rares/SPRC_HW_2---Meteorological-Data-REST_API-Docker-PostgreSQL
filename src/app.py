@@ -39,7 +39,7 @@ class Orase(db.Model):
         db.UniqueConstraint('id_tara', 'nume_oras'),
     )
 
-    def __init__(self, id, id_tara, nume_oras, latitudine, longitudine):
+    def __init__(self, id_tara, nume_oras, latitudine, longitudine, id=None):
         self.id = id
         self.id_tara = id_tara
         self.nume_oras = nume_oras
@@ -78,6 +78,12 @@ def add_country():
     if Tari.query.filter(Tari.nume_tara == body['nume']).first():
         return Response(status=409)
 
+        # check if data types are correct
+    if not ((isinstance(body['lon'], float)) and
+            (isinstance(body['nume'], str)) and
+            (isinstance(body['lat'], float))):
+        return Response(status=400)
+
     db.session.add(Tari(nume_tara=body['nume'], longitudine=body['lon'], latitudine=body['lat']))
     db.session.commit()
 
@@ -115,6 +121,13 @@ def modify_country(id_country):
     if not Tari.query.filter(Tari.id == id_country).first():
         return Response(status=404)
 
+    # check if data types are correct
+    if not ((isinstance(body['id'], int)) and
+            (isinstance(body['lon'], float)) and
+            (isinstance(body['nume'], str)) and
+            (isinstance(body['lat'], float))):
+        return Response(status=400)
+
     # check if the new name of country inserted does not conflict with another
     if db.session.query(Tari).filter(
         and_(Tari.id != id_country,
@@ -149,6 +162,33 @@ def delete_country(id_country):
     db.session.commit()
 
     return Response(status=200)
+
+@app.route('/api/cities', methods=['POST'])
+def add_city():
+    body = request.get_json()
+
+    # check if we have all required columns
+    if {"idTara", "nume", "lat", "lon"} != body.keys():
+        return Response(status=400)
+
+    # check if there already exists a city with that uk
+    if db.session.query(Orase).filter(
+        and_(Orase.id_tara == body['idTara'],
+             Orase.nume_oras == body['nume'])).first():
+        return Response(status=409)
+
+    # check if data types are correct
+    if not ((isinstance(body['lat'], float)) and
+            (isinstance(body['lon'], float)) and
+            (isinstance(body['nume'], str)) and
+            (isinstance(body['idTara'], int))):
+        return Response(status=400)
+
+    db.session.add(Orase(id_tara = body['idTara'],nume_oras=body['nume'], longitudine=body['lon'], latitudine=body['lat']))
+    db.session.commit()
+
+    test_data = {'id': db.session.query(Orase).filter(and_(Orase.nume_oras==body['nume'], Orase.id_tara == body['idTara'])).first().id}
+    return jsonify(test_data), 201
 
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
