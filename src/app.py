@@ -190,6 +190,30 @@ def add_city():
     test_data = {'id': db.session.query(Orase).filter(and_(Orase.nume_oras==body['nume'], Orase.id_tara == body['idTara'])).first().id}
     return jsonify(test_data), 201
 
+@app.route('/api/cities', methods=['GET'])
+def list_cities():
+    all_cities = Orase.query.all()
+
+    # reformat them in the desired format
+    columns_names = ['id', 'idTara', 'nume', 'lat', 'lon']
+    all_cities_reformated = [row2dict(columns_names, city) for city in all_cities]
+
+    print(all_cities_reformated, file=sys.stderr)
+
+    return jsonify(all_cities_reformated), 200
+
+@app.route('/api/cities/country/<int:id_country>', methods=['GET'])
+def get_city_of_country(id_country):
+    all_cities = db.session.query(Orase).filter(Orase.id_tara==id_country).all()
+
+    # reformat them in the desired format
+    columns_names = ['id', 'idTara', 'nume', 'lat', 'lon']
+    all_cities_reformated = [row2dict(columns_names, city) for city in all_cities]
+
+    print(all_cities_reformated, file=sys.stderr)
+
+    return jsonify(all_cities_reformated), 200
+
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
