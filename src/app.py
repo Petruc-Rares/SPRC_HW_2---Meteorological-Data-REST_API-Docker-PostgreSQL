@@ -248,6 +248,22 @@ def modify_city(id_city):
         return Response(status=400)
 
     return Response(status=200)
+
+@app.route("/api/cities/<int:id_city>", methods=["DELETE"])
+def delete_city(id_city):
+    city_to_delete = Orase.query.filter(Orase.id == id_city).first()
+
+    # check non-existent city to delete
+    if not city_to_delete:
+        return Response(status=404)
+
+    # do the delete
+    db.session.query(Orase).\
+                filter(Orase.id == id_city).\
+                delete()
+    db.session.commit()
+
+    return Response(status=200)
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
