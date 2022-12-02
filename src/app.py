@@ -133,6 +133,22 @@ def modify_country(id_country):
     return Response(status=200)
 
 
+@app.route("/api/countries/<int:id_country>", methods=["DELETE"])
+def delete_country(id_country):
+    body = request.get_json()
+
+    # check if the country id does not exist
+    # in this case return error
+    if not Tari.query.filter(Tari.id == id_country).first():
+        return Response(status=404)
+
+    db.session.query(Tari).\
+                filter(Tari.id == id_country).\
+                delete()
+
+    db.session.commit()
+
+    return Response(status=200)
 
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):

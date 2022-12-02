@@ -19,4 +19,7 @@ STERGE IMAGINI:
 docker image rm $(docker images -a -q)
 
 
-
+TODOs:
+PUT/api/countries/:id;
+-> la PUT la cities test care are lang long integer; desi la countries nu e,
+ai putea sa adaugi testul de verificare de tip si aici; si la post la fel
