@@ -407,36 +407,18 @@ def modify_temperature(id_temperature):
 
     return Response(status=200)
 
-# @app.route('/items/<id>', methods=['GET'])
-# def get_item(id):
-#     item = Item.query.get(id)
-#     del item.__dict__['_sa_instance_state']
-#     return jsonify(item.__dict__)
+@app.route("/api/temperatures/<int:id_temperature>", methods=["DELETE"])
+def delete_temperature(id_temperature):
+    temperature_to_delete = Temperaturi.query.filter(Temperaturi.id == id_temperature).first()
 
-# @app.route('/items', methods=['GET'])
-# def get_items():
-#     items = []
-#     for item in db.session.query(Item).all():
-#         del item.__dict__['_sa_instance_state']
-#         items.append(item.__dict__)
-#     return jsonify(items)
+    # check non-existent city to delete
+    if not temperature_to_delete:
+        return Response(status=404)
 
-# @app.route('/items', methods=['POST'])
-# def create_item():
-#     body = request.get_json()
-#     db.session.add(Item(body['title'], body['content']))
-#     db.session.commit()
-#     return "item created"
+    # do the delete
+    db.session.query(Temperaturi).\
+                filter(Temperaturi.id == id_temperature).\
+                delete()
+    db.session.commit()
 
-# @app.route('/items/<id>', methods=['PUT'])
-# def update_item(id):
-#     body = request.get_json()
-#     db.session.query(Item).filter(Item.id == id).update({Item.title: body['title'], Item.content: body['content']})
-#     db.session.commit()
-#     return "item updated"
-
-# @app.route('/items/<id>', methods=['DELETE'])
-# def delete_item(id):
-#     db.session.query(Item).filter(Item.id == id).delete()
-#     db.session.commit()
-#     return "item deleted"
+    return Response(status=200)
