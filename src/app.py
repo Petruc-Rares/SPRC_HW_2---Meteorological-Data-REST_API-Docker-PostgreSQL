@@ -287,6 +287,48 @@ def add_temperature():
     test_data = {'id': Temperaturi.query.filter(and_(Temperaturi.id_oras==body['idOras'], Temperaturi.timestamp==timestamp_generated)).first().id}
     return jsonify(test_data), 201
 
+@app.route('/api/temperatures', methods=['GET'])
+def search():
+    args = request.args
+    lat = args.get('lat')
+    lon = args.get('lon')
+    from_date = args.get('from')
+    until_date = args.get('until')
+
+    info = db.session.query(Temperaturi)
+
+    if lat is not None and lon is not None:
+        lat = float(lat)
+        lon = float(lon)
+
+        info = info.filter(Orase.id==Temperaturi.id_oras).\
+             filter(Orase.latitudine==lat).\
+             filter(Orase.longitudine==lon)
+    elif lat is not None:
+        lat = float(lat)
+
+        info = info.filter(Orase.id==Temperaturi.id_oras).\
+             filter(Orase.latitudine==lat)
+    elif lon is not None:
+        lon = float(lon)
+
+        info = info.filter(Orase.id==Temperaturi.id_oras).\
+             filter(Orase.longitudine==lon)
+    
+    if from_date is not None:
+        from_date = datetime.datetime.strptime(from_date, '%Y-%m-%d')
+        info = info.filter(Temperaturi.timestamp >= from_date)
+    
+    if until_date is not None:
+        until_date = datetime.datetime.strptime(until_date, '%Y-%m-%d')
+        info = info.filter(Temperaturi.timestamp <= until_date)
+
+    # reformat them in the desired format
+    columns_names = ['id', 'valoare', 'timestamp']
+    info_reformatted = [row2dict(columns_names, result) for result in info]
+
+    return jsonify(info_reformatted), 200
+
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
