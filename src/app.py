@@ -375,6 +375,38 @@ def search_3(id_country):
 
     return jsonify(info_reformatted), 200
 
+@app.route('/api/temperatures/<int:id_temperature>', methods=['PUT'])
+def modify_temperature(id_temperature):
+    body = request.get_json()
+
+    # check if we have all required columns
+    if {"id", "idOras", "valoare"} != body.keys():
+        return Response(status=400)
+
+    # check if data types are correct
+    if not ((isinstance(body['id'], int)) and
+            (isinstance(body['idOras'], int)) and
+            (isinstance(body['valoare'], float))):
+        return Response(status=400)    
+
+    if not Temperaturi.query.filter(Temperaturi.id == id_temperature).first():
+        return Response(status=404)
+
+    # try to modify existing id
+    # check no pk or uk violation
+    try:
+        db.session.query(Temperaturi).\
+            filter(Temperaturi.id == id_temperature).\
+            update({'id':body['id'],
+                    'id_oras': body['idOras'],
+                    'valoare': body['valoare']})
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return Response(status=400)
+
+    return Response(status=200)
+
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
