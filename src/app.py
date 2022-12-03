@@ -51,14 +51,15 @@ class Orase(db.Model):
 class Temperaturi(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     valoare = db.Column(db.Float)
-    timestamp = db.Column(db.DateTime, server_default=text("NOW()"), default=datetime.datetime.utcnow())
+    timestamp = db.Column(db.DateTime, server_default=text("NOW()"))
+
     id_oras = db.Column(db.Integer)
 
     __table_args__ = (
         db.UniqueConstraint('id_oras', 'timestamp'),
     )
 
-    def __init__(self, id, valoare, id_oras):
+    def __init__(self, valoare, id_oras, id=None, timestamp=None):
         self.id = id
         self.valoare = valoare
         self.timestamp = timestamp
@@ -257,6 +258,35 @@ def delete_city(id_city):
     db.session.commit()
 
     return Response(status=200)
+
+@app.route('/api/temperatures', methods=['POST'])
+def add_temperature():
+    body = request.get_json()
+
+    # check if we have all required columns
+    if {"idOras", "valoare"} != body.keys():
+        return Response(status=400)
+
+
+        # check if data types are correct
+    if not ((isinstance(body['idOras'], int)) and
+            (isinstance(body['valoare'], float))):
+        return Response(status=400)
+
+
+    # add the new country
+    # check uk, pk
+    try:
+        timestamp_generated = datetime.datetime.utcnow()
+        db.session.add(Temperaturi(id_oras=body['idOras'], valoare=body['valoare'], timestamp=timestamp_generated))
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return Response(status=409)
+
+    test_data = {'id': Temperaturi.query.filter(and_(Temperaturi.id_oras==body['idOras'], Temperaturi.timestamp==timestamp_generated)).first().id}
+    return jsonify(test_data), 201
+
 # @app.route('/items/<id>', methods=['GET'])
 # def get_item(id):
 #     item = Item.query.get(id)
