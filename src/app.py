@@ -181,7 +181,8 @@ def add_city():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return Response(status=400)
+        print('aici ar trb', file=sys.stderr)
+        return Response(status=409)
 
     test_data = {'id': db.session.query(Orase).filter(and_(Orase.nume_oras==body['nume'], Orase.id_tara == body['idTara'])).first().id}
     return jsonify(test_data), 201

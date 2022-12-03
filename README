@@ -1,5 +1,19 @@
-docker inspect db 
+
+Pentru accesare CRUD:
+Se intra pe:
+http://localhost:8080/
+Se folosesc ca si credentiale variabilele de mediu din fisierul yml:
+Se da click dreapta pe Servers -> Register -> Server...
+Se pune un nume pentru server
+In tab-ul collection se pune adresa ip a bazei de date obtinuta prin
+
+docker inspect db | grep "IPAddress"
 (ca sa iau adresa ip a containerului db pentru conectarea cu pagent)
+
+sau prin completarea numelui serviciului (db)
+
+Se completeaza si username si password cu valorile din variabilele de mediu
+ale serviciului db
 
 in container db:
 INTRA IN CONTAINER DE DB:
@@ -18,8 +32,5 @@ docker container rm $(docker ps -aq)
 STERGE IMAGINI:
 docker image rm $(docker images -a -q)
 
-
-TODOs:
-PUT/api/countries/:id;
--> la PUT la cities test care are lang long integer; desi la countries nu e,
-ai putea sa adaugi testul de verificare de tip si aici; si la post la fel
+ACCES IMAGINI:
+docker exec -it nginx-server2 sh
