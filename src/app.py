@@ -139,7 +139,7 @@ def modify_country(id_country):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return Response(status=400)
+        return Response(status=409)
 
     return Response(status=200)
 
@@ -240,7 +240,7 @@ def modify_city(id_city):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return Response(status=400)
+        return Response(status=409)
 
     return Response(status=200)
 
@@ -404,7 +404,7 @@ def modify_temperature(id_temperature):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return Response(status=400)
+        return Response(status=409)
 
     return Response(status=200)
 
