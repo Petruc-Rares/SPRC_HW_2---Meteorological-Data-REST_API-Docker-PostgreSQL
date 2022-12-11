@@ -1,19 +1,21 @@
 
 Pentru accesare CRUD:
-Se intra pe:
-http://localhost:8080/
-Se folosesc ca si credentiale variabilele de mediu din fisierul yml:
-Se da click dreapta pe Servers -> Register -> Server...
-Se pune un nume pentru server
-In tab-ul collection se pune adresa ip a bazei de date obtinuta prin
+1) Se intra din browser pe: http://localhost:8080/
+2) Se da click dreapta pe Servers -> Register -> Server...
+3) Se pune un nume pentru server
+4) In tab-ul collection se pune adresa ip a bazei de date obtinuta prin:
 
 docker inspect db | grep "IPAddress"
 (ca sa iau adresa ip a containerului db pentru conectarea cu pagent)
 
-sau prin completarea numelui serviciului (db)
+SAU
 
-Se completeaza si username si password cu valorile din variabilele de mediu
-ale serviciului db
+prin completarea numelui serviciului (db)
+
+5) Se completeaza si username si password cu valorile din variabilele de mediu
+ale serviciului db din fisierul yml.
+
+
 
 in container db:
 INTRA IN CONTAINER DE DB:

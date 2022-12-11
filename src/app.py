@@ -109,7 +109,7 @@ def list_countries():
 
     return jsonify(all_countries_reformated), 200
 
-@app.route("/api/countries/<int:id_country>", methods=["PUT"])
+@app.route("/api/countries/<int:id_country>", methods=['PUT'])
 def modify_country(id_country):
     body = request.get_json()
 
@@ -117,17 +117,21 @@ def modify_country(id_country):
     if {"id", "nume", "lat", "lon"} != body.keys():
         return Response(status=400)
 
-    # check if the country id does not exist
-    # in this case return error
-    if not Tari.query.filter(Tari.id == id_country).first():
-        return Response(status=404)
-
     # check if data types are correct
     if not ((isinstance(body['id'], int)) and
             (isinstance(body['lon'], float)) and
             (isinstance(body['nume'], str)) and
             (isinstance(body['lat'], float))):
         return Response(status=400) 
+
+    # check if the country id does not exist
+    # in this case return error
+    if not Tari.query.filter(Tari.id == id_country).first():
+        return Response(status=404)
+
+    # check if body id corresponds to field from request
+    if not body['id'] == id_country:
+        return Response(status=400)
 
     try:
         db.session.query(Tari).\
@@ -226,6 +230,9 @@ def modify_city(id_city):
     if not Orase.query.filter(Orase.id == id_city).first():
         return Response(status=404)
 
+    # check if body id corresponds to field from request
+    if not body['id'] == id_city:
+        return Response(status=400)
 
     # try to modify existing id
     # check no pk or uk violation
@@ -392,6 +399,11 @@ def modify_temperature(id_temperature):
 
     if not Temperaturi.query.filter(Temperaturi.id == id_temperature).first():
         return Response(status=404)
+
+    # check if body id corresponds to field from request
+    if not body['id'] == id_temperature:
+        return Response(status=400)
+
 
     # try to modify existing id
     # check no pk or uk violation
